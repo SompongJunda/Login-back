@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Customers {
+  id       Int     @id @default(autoincrement())
+  username String  @unique @db.VarChar(30)
+  password String  @db.VarChar(72)
+  email    String?
+  Cart     Cart[]
+  Order    Order[]
+
+  @@map("customers")
+}
+
+model Cart {
+  id       Int     @id @default(autoincrement())
+  quantity String?
+
+  Customers   Customers? @relation(fields: [customersId], references: [id])
+  customersId Int?
+  payments    Payment[]
+
+  OrderItem   OrderItem? @relation(fields: [orderItemId], references: [id])
+  orderItemId Int?
+
+  @@map("cart")
+}
+
+model Payment {
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  option String?
+  Cart   Cart?    @relation(fields: [cartId], references: [id])
+  cartId Int?
+
+  @@map("paymant")
+}
+
+model OrderItem {
+  id       Int   @id @default(autoincrement())
+  amount   Float
+  price    Int
+  discount Int
+
+  carts     Cart[]
+  Order     Order?   @relation(fields: [orderId], references: [id])
+  orderId   Int?
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
+
+  @@map("orderItem")
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  date        DateTime
+  Customers   Customers?  @relation(fields: [customersId], references: [id])
+  customersId Int?
+  orderItem   OrderItem[]
+
+  @@map("order")
+}
+
+model Product {
+  id       Int     @id @default(autoincrement())
+  name     String
+  price    Int
+  quantity String?
+
+  categories Categories[]
+  orderItem  OrderItem[]
+  Supplier   Supplier?    @relation(fields: [supplierId], references: [id])
+  supplierId Int?
+
+  @@map("product")
+}
+
+model Categories {
+  id        Int      @id @default(autoincrement())
+  name      String
+  product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
+
+  @@map("categories")
+}
+
+model Supplier {
+  id       Int       @id @default(autoincrement())
+  name     String
+  address  String
+  phone    Int
+  products Product[]
+
+  @@map("supplier")
+}
+
+enum Status {
+  PENDING
+  DOING
+  DONE
+}
